@@ -4,7 +4,6 @@ import (
 	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 )
@@ -43,6 +42,8 @@ type Profile struct {
 	InspirationalPeople []Item  `json:"inspirational_people"`
 }
 
+const GraphHost = "graph.facebook.com"
+
 func Init(client_id, client_secret, redirect_url string, options map[string]string) *FBAuth {
 	fba := new(FBAuth)
 	fba.ClientId = client_id
@@ -78,37 +79,27 @@ func (fba *FBAuth) AccessToken() string {
 	return token
 }
 
+func (g *Graph) getRequestUri(path string) string {
+	var uri url.URL
+	query := url.Values{"access_token": {g.AccessToken}}.Encode()
+
+	uri.Host = GraphHost
+	uri.Path = path
+	uri.Scheme = "https"
+	uri.RawQuery = query
+
+	return uri.String()
+}
+
 func (g *Graph) GetObject(object string) (*Profile, error) {
-	var request_uri url.URL
 	var profile Profile
-
-	q := url.Values{"access_token": {g.AccessToken}}.Encode()
-
-	request_uri.Host = "graph.facebook.com"
-	request_uri.Scheme = "https"
-	request_uri.Path = object
-	request_uri.RawQuery = q
-
-	resp, err := http.Get(request_uri.String())
+	resp, err := http.Get(g.getRequestUri(object))
 
 	if err != nil {
-		panic("Error in opening connection to server")
-	}
-
-	data, err := ioutil.ReadAll(resp.Body)
-	resp.Body.Close()
-
-	if err != nil {
-		fmt.Println("Error in opening the response Body")
 		return nil, err
 	}
 
-	err = json.Unmarshal(data, &profile)
-	if err != nil {
-		fmt.Println("Error in decoding json data")
-		return nil, err
-	}
-
-	fmt.Println(profile)
-	return &profile, err
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(&profile)
+	return &profile, nil
 }
