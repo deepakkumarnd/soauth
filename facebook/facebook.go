@@ -1,17 +1,11 @@
-package oauth_fb
+package facebook
 
 import (
-	"code.google.com/p/goauth2/oauth"
 	"encoding/json"
-	"fmt"
+	"github.com/42races/soauth/auth"
 	"net/http"
 	"net/url"
 )
-
-type FBAuth struct {
-	oauth.Config
-	Token *oauth.Token
-}
 
 type Graph struct {
 	AccessToken string
@@ -46,41 +40,15 @@ type Profile struct {
 	InspirationalPeople []Item  `json:"inspirational_people"`
 }
 
-const GraphHost = "graph.facebook.com"
+const (
+	GraphHost = "graph.facebook.com"
+	AuthUrl   = "https://graph.facebook.com/oauth/authorize"
+	TokenUrl  = "https://graph.facebook.com/oauth/access_token"
+)
 
-func Init(client_id, client_secret, redirect_url string, options map[string]string) *FBAuth {
-	fba := new(FBAuth)
-	fba.ClientId = client_id
-	fba.ClientSecret = client_secret
-	fba.RedirectURL = redirect_url
-	fba.AuthURL = "https://graph.facebook.com/oauth/authorize"
-	fba.TokenURL = "https://graph.facebook.com/oauth/access_token"
-
+func Init(client_id, client_secret, redirect_url string, options map[string]string) *auth.Auth {
+	fba := auth.Init(client_id, client_secret, redirect_url, AuthUrl, TokenUrl)
 	return fba
-}
-
-func (fba *FBAuth) LoginURL() string {
-	// demo is a random string to prevent cross site requests
-	return fba.AuthCodeURL("demo")
-}
-
-func (fba *FBAuth) Authorize(code string) (string, error) {
-	t := &oauth.Transport{Config: &fba.Config}
-	tok, err := t.Exchange(code)
-	fba.Token = tok
-	if err != nil {
-		fmt.Println("Error in getting token")
-	}
-
-	return fba.AccessToken(), err
-}
-
-func (fba *FBAuth) AccessToken() string {
-	var token string
-	if fba.Token != nil {
-		token = fba.Token.AccessToken
-	}
-	return token
 }
 
 func (g *Graph) getRequestUri(path string) string {
