@@ -22,6 +22,10 @@ type Item struct {
 	Name string `json:"name"`
 }
 
+type Data struct {
+	Data []Item `json:"data"`
+}
+
 type Profile struct {
 	Id                  string  `json:"id"`
 	Username            string  `json:"username"`
@@ -101,5 +105,20 @@ func (g *Graph) GetObject(object string) (*Profile, error) {
 
 	defer resp.Body.Close()
 	err = json.NewDecoder(resp.Body).Decode(&profile)
+
 	return &profile, nil
+}
+
+func (g *Graph) GetConnections(path string) ([]Item, error) {
+	var data Data
+	resp, err := http.Get(g.getRequestUri(path))
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	err = json.NewDecoder(resp.Body).Decode(&data)
+
+	return data.Data, nil
 }
