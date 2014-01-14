@@ -6,6 +6,7 @@ It requires a webview(browser) to authenticate, currently **soauth** supports th
 
 * Authentication with facebook
 * Authentication with foursquare
+* Authenticaiton with github
 * Facebook Graph Api
     * Profile details access
     * Connections - friend list
@@ -40,6 +41,8 @@ It requires a webview(browser) to authenticate, currently **soauth** supports th
 
     fmt.Println("Auth token", token)
     // store the token in the database and use it for further api access
+
+For foursquare and Github the procedure is same, just import package foursquare or github
 
 ## Facebook Graph Api Access
     // Once you have the token you can use Facebook Graph Api
